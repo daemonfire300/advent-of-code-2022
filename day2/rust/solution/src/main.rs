@@ -1,15 +1,75 @@
 use std::{env::args, fs::read_to_string};
 
 fn main() {
+    problem1();
+    problem2();
+}
+
+fn problem1() {
     let path = args().nth(1).unwrap_or("input.txt".to_string());
     let contents = read_to_string(path.as_str()).unwrap();
-    contents.lines().reduce(|acc, e| {
-        if let Some(split) = e.split_once(" ") {
-        } else {
-            return 0;
-        }
-    });
-    println!("Hello, world!");
+    let final_score = contents
+        .lines()
+        .map(|e| {
+            if let Some(split) = e.split_once(" ") {
+                let score = to_score(split.1, split.0);
+                return score;
+            } else {
+                return 0;
+            }
+        })
+        .reduce(|acc, e| return acc + e);
+    println!("{:?}", final_score);
+}
+
+fn problem2() {
+    let path = args().nth(1).unwrap_or("input.txt".to_string());
+    let contents = read_to_string(path.as_str()).unwrap();
+    let final_score = contents
+        .lines()
+        .map(|e| {
+            if let Some(split) = e.split_once(" ") {
+                let score = to_score(split.1, split.0);
+                return score;
+            } else {
+                return 0;
+            }
+        })
+        .reduce(|acc, e| return acc + e);
+    println!("{:?}", final_score);
+}
+
+fn convert_strategy_to_action<'a, 'b>(
+    opponent_letter: &'a str,
+    strategy_letter: &'a str,
+) -> &'b str {
+    let idx: i8 = letter_to_idx(opponent_letter).try_into().unwrap();
+    let mut idx_move: i8 = 0;
+    if is_rock(strategy_letter) {
+        // lose
+        idx_move = idx - 1;
+    }
+    let chosen_letter = ACTION_SET[wrap_move(idx_move)];
+    return chosen_letter;
+}
+
+fn wrap_move(idx_move: i8) -> usize {
+    if idx_move < 0 {
+        return 2;
+    }
+    if idx_move > 2 {
+        return 0;
+    }
+    return idx_move.try_into().unwrap();
+}
+
+fn letter_to_idx(letter: &str) -> u8 {
+    match letter {
+        "A" | "X" => 0,
+        "B" | "Y" => 1,
+        "C" | "Z" => 2,
+        _ => panic!("undefined letter"),
+    }
 }
 
 fn is_rock(letter: &str) -> bool {
@@ -23,6 +83,8 @@ fn is_paper(letter: &str) -> bool {
 fn is_scissor(letter: &str) -> bool {
     return letter == "C" || letter == "Z";
 }
+
+const ACTION_SET: [&str; 3] = ["A", "B", "C"];
 
 const ROCK_VALUE: u32 = 1;
 const PAPER_VALUE: u32 = 2;
@@ -65,5 +127,5 @@ fn to_score(first_letter: &str, second_letter: &str) -> u32 {
             return SCISSOR_VALUE + DRAW_VALUE;
         }
     }
-    return 0;
+    panic!("should not reach this code")
 }
