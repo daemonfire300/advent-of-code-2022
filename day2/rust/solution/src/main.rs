@@ -27,13 +27,12 @@ fn problem2() {
     let contents = read_to_string(path.as_str()).unwrap();
     let final_score = contents
         .lines()
-        .map(|e| {
-            if let Some(split) = e.split_once(" ") {
-                let score = to_score(split.1, split.0);
-                return score;
-            } else {
-                return 0;
-            }
+        .map(|e| e.split_once(" "))
+        .filter(|e| e.is_some())
+        .map(|e| e.unwrap())
+        .map(|split| {
+            let score = to_score(convert_strategy_to_action(split.0, split.1), split.0);
+            return score;
         })
         .reduce(|acc, e| return acc + e);
     println!("{:?}", final_score);
@@ -43,11 +42,19 @@ fn convert_strategy_to_action<'a, 'b>(
     opponent_letter: &'a str,
     strategy_letter: &'a str,
 ) -> &'b str {
-    let idx: i8 = letter_to_idx(opponent_letter).try_into().unwrap();
-    let mut idx_move: i8 = 0;
+    let idx: i8 = letter_to_idx(opponent_letter)
+        .try_into()
+        .unwrap_or(ACTION_SET.len().try_into().unwrap_or(2));
+    let idx_move: i8;
     if is_rock(strategy_letter) {
         // lose
         idx_move = idx - 1;
+    } else if is_paper(strategy_letter) {
+        // draw
+        idx_move = idx;
+    } else {
+        // win
+        idx_move = idx + 1;
     }
     let chosen_letter = ACTION_SET[wrap_move(idx_move)];
     return chosen_letter;
@@ -60,7 +67,7 @@ fn wrap_move(idx_move: i8) -> usize {
     if idx_move > 2 {
         return 0;
     }
-    return idx_move.try_into().unwrap();
+    return idx_move.try_into().unwrap_or_default();
 }
 
 fn letter_to_idx(letter: &str) -> u8 {
